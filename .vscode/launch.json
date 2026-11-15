@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Sistema de directorios (menú)",
+      "request": "launch",
+      "mainClass": "Main",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "java",
+      "name": "Pruebas",
+      "request": "launch",
+      "mainClass": "PruebasDirectorios",
+      "console": "integratedTerminal"
+    }
+  ]
+}
