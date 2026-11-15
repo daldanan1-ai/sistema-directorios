@@ -190,7 +190,7 @@ public class MenuConsola {
 
     private void eliminar() {
         String ruta = leer("Ruta de la carpeta o archivo a eliminar: ");
-        NodoArbol<Elemento> nodo = sistema.localizar(ruta);
+        NodoArbol<Elemento> nodo = sistema.validarEliminable(ruta);   // valida ANTES de pedir confirmación
         int cantidad = arbol.preorden(nodo).size();
         if (cantidad > 1) {
             System.out.println("  " + sistema.ruta(nodo.getDato()) + " contiene " + (cantidad - 1)
