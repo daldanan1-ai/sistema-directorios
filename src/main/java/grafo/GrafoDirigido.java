@@ -230,6 +230,110 @@ public class GrafoDirigido<T> {
         }
     }
 
+    // ======================================================== PROBLEMAS
+
+    /**
+     * CAMINO CON MENOS CONEXIONES de origen a destino (siguiendo la dirección de
+     * las aristas). Se hace un BFS guardando en "anterior" desde qué vértice se
+     * descubrió cada uno. Como BFS avanza por niveles, la primera vez que se
+     * alcanza el destino es por el camino más corto (en número de aristas).
+     * Luego se reconstruye el camino yendo hacia atrás desde el destino.
+     * Devuelve una lista vacía si no hay camino.
+     */
+    public List<T> caminoMasCorto(T origen, T destino) {
+        validarVertice(origen);
+        validarVertice(destino);
+        Map<T, T> anterior = new java.util.HashMap<>();
+        Set<T> visitados = new java.util.HashSet<>();
+        java.util.Queue<T> cola = new java.util.ArrayDeque<>();
+        visitados.add(origen);
+        cola.offer(origen);
+        while (!cola.isEmpty()) {
+            T actual = cola.poll();
+            if (actual.equals(destino)) {
+                List<T> camino = new ArrayList<>();
+                for (T v = destino; v != null; v = anterior.get(v)) {
+                    camino.add(0, v);
+                }
+                return camino;
+            }
+            for (Arista<T> a : adyacencias.get(actual)) {
+                if (visitados.add(a.getDestino())) {
+                    anterior.put(a.getDestino(), actual);
+                    cola.offer(a.getDestino());
+                }
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * DETECCIÓN DE CICLOS en un grafo dirigido con DFS y tres estados:
+     *   BLANCO = no visitado, GRIS = en el camino actual de la recursión,
+     *   NEGRO  = terminado (ya se exploró todo lo que alcanza).
+     * Si desde un vértice GRIS se llega a otro vértice GRIS, se volvió a un
+     * vértice del camino actual: hay un CICLO. Se devuelve cada ciclo
+     * encontrado como lista [v1, v2, ..., v1].
+     */
+    public List<List<T>> detectarCiclos() {
+        Map<T, Integer> estado = new java.util.HashMap<>();   // 0 blanco, 1 gris, 2 negro
+        List<T> caminoActual = new ArrayList<>();
+        List<List<T>> ciclos = new ArrayList<>();
+        for (T v : adyacencias.keySet()) {
+            if (estado.getOrDefault(v, 0) == 0) {
+                buscarCiclos(v, estado, caminoActual, ciclos);
+            }
+        }
+        return ciclos;
+    }
+
+    private void buscarCiclos(T actual, Map<T, Integer> estado, List<T> caminoActual, List<List<T>> ciclos) {
+        estado.put(actual, 1);
+        caminoActual.add(actual);
+        for (Arista<T> a : adyacencias.get(actual)) {
+            T vecino = a.getDestino();
+            int e = estado.getOrDefault(vecino, 0);
+            if (e == 0) {
+                buscarCiclos(vecino, estado, caminoActual, ciclos);
+            } else if (e == 1) {                               // arista de retroceso: ciclo
+                List<T> ciclo = new ArrayList<>(caminoActual.subList(caminoActual.indexOf(vecino), caminoActual.size()));
+                ciclo.add(vecino);
+                ciclos.add(ciclo);
+            }
+        }
+        caminoActual.remove(caminoActual.size() - 1);
+        estado.put(actual, 2);
+    }
+
+    /**
+     * ANÁLISIS DE IMPACTO: vértices que llegan al vértice dado siguiendo las
+     * aristas, es decir, los que DEPENDEN de él directa o indirectamente.
+     * Es un BFS que avanza al revés (por los predecesores). Devuelve los niveles:
+     * nivel 1 = dependen directamente, nivel 2 = dependen de los anteriores, etc.
+     */
+    public List<List<T>> dependientes(T vertice) {
+        validarVertice(vertice);
+        List<List<T>> niveles = new ArrayList<>();
+        Set<T> visitados = new java.util.HashSet<>();
+        visitados.add(vertice);
+        List<T> nivelActual = List.of(vertice);
+        while (true) {
+            List<T> siguiente = new ArrayList<>();
+            for (T v : nivelActual) {
+                for (T p : predecesores(v)) {
+                    if (visitados.add(p)) {
+                        siguiente.add(p);
+                    }
+                }
+            }
+            if (siguiente.isEmpty()) {
+                return niveles;
+            }
+            niveles.add(siguiente);
+            nivelActual = siguiente;
+        }
+    }
+
     private void validarVertice(T vertice) {
         if (!adyacencias.containsKey(vertice)) {
             throw new IllegalArgumentException("\"" + vertice + "\" no está en la red");
