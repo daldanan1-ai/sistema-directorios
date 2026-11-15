@@ -89,6 +89,100 @@ public class ArbolGeneral<T> {
         }
     }
 
+    // ========================================================= PROPIEDADES
+
+    /** NIVEL = número de aristas desde la raíz. La raíz está en el nivel 0. */
+    public int nivel(NodoArbol<T> nodo) {
+        int nivel = 0;
+        NodoArbol<T> actual = nodo;
+        while (actual.getPadre() != null) {      // sube por las referencias al padre
+            nivel++;
+            actual = actual.getPadre();
+        }
+        return nivel;
+    }
+
+    /**
+     * ALTURA de un nodo = número de aristas del camino más largo hasta una hoja.
+     * Una hoja tiene altura 0; un nodo tiene altura 1 + la mayor altura de sus hijos.
+     */
+    public int altura(NodoArbol<T> nodo) {
+        int mayor = -1;
+        for (NodoArbol<T> hijo : nodo.getHijos()) {
+            mayor = Math.max(mayor, altura(hijo));
+        }
+        return mayor + 1;
+    }
+
+    public int altura() {
+        return altura(raiz);
+    }
+
+    /** Camino desde la raíz hasta el nodo (raíz incluida), subiendo por los padres. */
+    public List<NodoArbol<T>> caminoDesdeRaiz(NodoArbol<T> nodo) {
+        List<NodoArbol<T>> camino = new ArrayList<>();
+        for (NodoArbol<T> actual = nodo; actual != null; actual = actual.getPadre()) {
+            camino.add(0, actual);
+        }
+        return camino;
+    }
+
+    /** true si "posibleAncestro" está en el camino desde "nodo" hasta la raíz (o es el mismo nodo). */
+    public boolean esAncestroOIgual(NodoArbol<T> posibleAncestro, NodoArbol<T> nodo) {
+        for (NodoArbol<T> actual = nodo; actual != null; actual = actual.getPadre()) {
+            if (actual == posibleAncestro) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int contarNodos() {
+        return preorden(raiz).size();
+    }
+
+    // ======================================================== MODIFICACIÓN
+
+    /**
+     * Elimina el nodo y TODO su subárbol. Devuelve los nodos eliminados en
+     * POSTORDEN (primero el contenido y al final el nodo), para que quien llama
+     * pueda limpiar otras estructuras (por ejemplo, el grafo).
+     */
+    public List<NodoArbol<T>> eliminar(NodoArbol<T> nodo) {
+        if (nodo == raiz) {
+            throw new IllegalArgumentException("No se puede eliminar la raíz del árbol");
+        }
+        List<NodoArbol<T>> eliminados = postorden(nodo);
+        nodo.getPadre().quitarHijo(nodo);        // el padre deja de apuntar al nodo
+        nodo.setPadre(null);                     // y el nodo deja de apuntar al padre
+        return eliminados;
+    }
+
+    /**
+     * Mueve un nodo (con todo su subárbol) bajo un nuevo padre. No se permite
+     * mover un nodo dentro de sí mismo o de uno de sus descendientes: eso dejaría
+     * el subárbol desconectado de la raíz y formaría un ciclo.
+     */
+    public void mover(NodoArbol<T> nodo, NodoArbol<T> nuevoPadre) {
+        if (nodo == raiz) {
+            throw new IllegalArgumentException("No se puede mover la raíz");
+        }
+        if (esAncestroOIgual(nodo, nuevoPadre)) {
+            throw new IllegalArgumentException("No se puede mover un elemento dentro de sí mismo o de su propio contenido");
+        }
+        nodo.getPadre().quitarHijo(nodo);
+        enlazar(nuevoPadre, nodo);
+    }
+
+    /** Después de cambiar un dato que afecta el orden (renombrar), lo reubica entre sus hermanos. */
+    public void reordenar(NodoArbol<T> nodo) {
+        NodoArbol<T> padre = nodo.getPadre();
+        if (padre != null) {
+            padre.quitarHijo(nodo);
+            enlazar(padre, nodo);
+        }
+    }
+
     // =========================================================== RECORRIDOS
 
     /**
