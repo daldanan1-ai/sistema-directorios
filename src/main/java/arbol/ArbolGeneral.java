@@ -89,6 +89,69 @@ public class ArbolGeneral<T> {
         }
     }
 
+    // =========================================================== RECORRIDOS
+
+    /**
+     * PREORDEN (recorrido en profundidad): primero el nodo y después, uno por uno,
+     * todo el subárbol de cada hijo. Una carpeta aparece ANTES que su contenido,
+     * igual que al listar un directorio con el comando "tree".
+     */
+    public List<NodoArbol<T>> preorden(NodoArbol<T> desde) {
+        List<NodoArbol<T>> orden = new ArrayList<>();
+        preorden(desde, orden);
+        return orden;
+    }
+
+    private void preorden(NodoArbol<T> nodo, List<NodoArbol<T>> orden) {
+        orden.add(nodo);                         // 1. visitar el nodo
+        for (NodoArbol<T> hijo : nodo.getHijos()) {
+            preorden(hijo, orden);               // 2. recorrer cada subárbol completo
+        }
+    }
+
+    /**
+     * POSTORDEN (también en profundidad): primero todos los hijos y al final el
+     * nodo. Una carpeta aparece DESPUÉS de su contenido. Es el orden necesario
+     * para calcular el tamaño de una carpeta (se necesita el de sus hijos) o para
+     * borrarla (primero se borra el contenido).
+     */
+    public List<NodoArbol<T>> postorden(NodoArbol<T> desde) {
+        List<NodoArbol<T>> orden = new ArrayList<>();
+        postorden(desde, orden);
+        return orden;
+    }
+
+    private void postorden(NodoArbol<T> nodo, List<NodoArbol<T>> orden) {
+        for (NodoArbol<T> hijo : nodo.getHijos()) {
+            postorden(hijo, orden);              // 1. recorrer cada subárbol
+        }
+        orden.add(nodo);                         // 2. visitar el nodo al final
+    }
+
+    /**
+     * POR NIVELES (en amplitud): usa una COLA. Se visita la raíz, luego todos sus
+     * hijos (nivel 1), luego todos los nietos (nivel 2), etc. Devuelve una lista
+     * por cada nivel.
+     */
+    public List<List<NodoArbol<T>>> porNiveles(NodoArbol<T> desde) {
+        List<List<NodoArbol<T>>> niveles = new ArrayList<>();
+        java.util.Queue<NodoArbol<T>> cola = new java.util.ArrayDeque<>();
+        cola.offer(desde);
+        while (!cola.isEmpty()) {
+            int enEsteNivel = cola.size();       // los que están en la cola son todos del mismo nivel
+            List<NodoArbol<T>> nivel = new ArrayList<>();
+            for (int i = 0; i < enEsteNivel; i++) {
+                NodoArbol<T> actual = cola.poll();
+                nivel.add(actual);
+                for (NodoArbol<T> hijo : actual.getHijos()) {
+                    cola.offer(hijo);            // los hijos se atenderán en el siguiente nivel
+                }
+            }
+            niveles.add(nivel);
+        }
+        return niveles;
+    }
+
     // ===================================================== REPRESENTACIÓN
 
     /**
