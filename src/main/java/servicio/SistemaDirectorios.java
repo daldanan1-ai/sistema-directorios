@@ -175,8 +175,12 @@ public class SistemaDirectorios {
     }
 
     public String dibujarArbol(NodoArbol<Elemento> desde) {
-        return arbol.representar(desde, e -> e instanceof Archivo && red.contieneVertice((Archivo) e)
-                ? e + "  ⇄ en red" : e.toString());
+        return arbol.representar(desde, e -> {
+            if (nodoDe.get(e) == arbol.getRaiz()) {
+                return e.getNombre();
+            }
+            return e instanceof Archivo && red.contieneVertice((Archivo) e) ? e + "  ⇄ en red" : e.toString();
+        });
     }
 
     // =============================================== ÁRBOL: MODIFICAR
