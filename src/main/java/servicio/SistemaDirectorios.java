@@ -213,6 +213,18 @@ public class SistemaDirectorios {
     }
 
     /**
+     * Verifica que el elemento exista y se pueda eliminar, SIN eliminarlo. El menú
+     * lo usa antes de pedir confirmación, para no preguntar por algo imposible.
+     */
+    public NodoArbol<Elemento> validarEliminable(String ruta) {
+        NodoArbol<Elemento> nodo = localizar(ruta);
+        if (nodo.esRaiz() || nodo.getDato() instanceof Unidad) {
+            throw new IllegalArgumentException("No se puede eliminar \"Este equipo\" ni una unidad");
+        }
+        return nodo;
+    }
+
+    /**
      * POLÍTICA DE ELIMINACIÓN: como en un sistema de archivos real, eliminar una
      * carpeta elimina TODO su contenido (subárbol). Los archivos eliminados se
      * retiran también de la red de vínculos, y se informa qué archivos que
@@ -220,10 +232,7 @@ public class SistemaDirectorios {
      * no se pueden eliminar.
      */
     public ResultadoEliminacion eliminar(String ruta) {
-        NodoArbol<Elemento> nodo = localizar(ruta);
-        if (nodo.esRaiz() || nodo.getDato() instanceof Unidad) {
-            throw new IllegalArgumentException("No se puede eliminar \"Este equipo\" ni una unidad");
-        }
+        NodoArbol<Elemento> nodo = validarEliminable(ruta);
         String rutaEliminada = ruta(nodo.getDato());
         List<NodoArbol<Elemento>> eliminados = arbol.eliminar(nodo);
         ResultadoEliminacion resultado = new ResultadoEliminacion(rutaEliminada, eliminados.size());
