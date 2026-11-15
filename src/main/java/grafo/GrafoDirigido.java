@@ -162,6 +162,74 @@ public class GrafoDirigido<T> {
         return total;
     }
 
+    // ========================================================== RECORRIDOS
+
+    /**
+     * BFS (Breadth-First Search, búsqueda en AMPLITUD).
+     * Usa una COLA: primero se visitan todos los vecinos directos del inicio
+     * (nivel 1), luego los vecinos de esos vecinos (nivel 2), etc. Un conjunto
+     * de "visitados" evita procesar dos veces un vértice (por ciclos o caminos
+     * alternativos). Devuelve una lista por cada nivel de distancia.
+     */
+    public List<List<T>> bfs(T inicio) {
+        validarVertice(inicio);
+        List<List<T>> niveles = new ArrayList<>();
+        Set<T> visitados = new java.util.HashSet<>();
+        java.util.Queue<T> cola = new java.util.ArrayDeque<>();
+        visitados.add(inicio);
+        cola.offer(inicio);
+        while (!cola.isEmpty()) {
+            int enEsteNivel = cola.size();
+            List<T> nivel = new ArrayList<>();
+            for (int i = 0; i < enEsteNivel; i++) {
+                T actual = cola.poll();
+                nivel.add(actual);
+                for (Arista<T> a : adyacencias.get(actual)) {
+                    if (visitados.add(a.getDestino())) {   // add devuelve false si ya estaba
+                        cola.offer(a.getDestino());
+                    }
+                }
+            }
+            niveles.add(nivel);
+        }
+        return niveles;
+    }
+
+    /**
+     * DFS (Depth-First Search, búsqueda en PROFUNDIDAD), versión RECURSIVA.
+     * Desde un vértice se toma el primer vecino no visitado y se sigue por él
+     * hasta no poder avanzar más; solo entonces se RETROCEDE (vuelve la llamada
+     * recursiva) y se prueba el siguiente vecino. La pila de llamadas hace el
+     * papel de la pila explícita.
+     */
+    public List<T> dfs(T inicio) {
+        return dfs(inicio, null);
+    }
+
+    /** Igual que dfs(inicio), y además anota en "rastro" cada entrada y cada retroceso. */
+    public List<T> dfs(T inicio, List<String> rastro) {
+        validarVertice(inicio);
+        List<T> orden = new ArrayList<>();
+        dfs(inicio, new java.util.HashSet<>(), orden, rastro, 0);
+        return orden;
+    }
+
+    private void dfs(T actual, Set<T> visitados, List<T> orden, List<String> rastro, int profundidad) {
+        visitados.add(actual);
+        orden.add(actual);
+        if (rastro != null) {
+            rastro.add("  ".repeat(profundidad) + "entra a " + actual);
+        }
+        for (Arista<T> a : adyacencias.get(actual)) {
+            if (!visitados.contains(a.getDestino())) {
+                dfs(a.getDestino(), visitados, orden, rastro, profundidad + 1);
+            }
+        }
+        if (rastro != null) {
+            rastro.add("  ".repeat(profundidad) + "retrocede desde " + actual);
+        }
+    }
+
     private void validarVertice(T vertice) {
         if (!adyacencias.containsKey(vertice)) {
             throw new IllegalArgumentException("\"" + vertice + "\" no está en la red");
